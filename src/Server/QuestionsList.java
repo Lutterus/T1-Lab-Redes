@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class Questions {
+public class QuestionsList {
 	// Lista de perguntas faceis
 	private ArrayList<Question> eazyQuestions;
 	// Lista de perguntas medias
@@ -13,7 +13,7 @@ public class Questions {
 	// Lista de perguntas dificeis
 	private ArrayList<Question> hardQuestions;
 
-	public Questions() {
+	public QuestionsList() {
 		eazyQuestions = new ArrayList<Question>();
 		mediumQuestions = new ArrayList<Question>();
 		hardQuestions = new ArrayList<Question>();
@@ -55,7 +55,7 @@ public class Questions {
 					} else {
 						eazyQuestions.add(q);
 					}
-					//System.out.println(q.toString());
+					// System.out.println(q.toString());
 
 				} catch (Exception e) {
 					System.out.println("Erro !!! Não foi possível ler as linhas do arquivo: " + file.getName());
