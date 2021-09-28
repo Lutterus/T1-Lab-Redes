@@ -35,12 +35,15 @@ public class Main {
 		}
 
 		String receivedMessage = "";
-		while (!receivedMessage.contentEquals("STOP")) {
+		while (!receivedMessage.contains("STOP")) {
 			// Envia conteudo do cliente ao servidor
 			sendMessage(IPAddress, clientSocket, user);
 			// Espera mensagem do servidor e apresenta em tela
 			receivedMessage = receiveMessage(serverSocket);
 		}
+		System.out.println("Parabens, voce chegou ao fim");
+		receivedMessage = receiveMessage(serverSocket);
+		System.out.println("Seu resultado foi: " + receivedMessage);
 
 		// fecha o cliente
 		clientSocket.close();

@@ -2,17 +2,17 @@ package Server;
 
 public class Question {
 	private String difficulty;
-	private String question;
+	private String text;
 	private String answer;
 
-	public Question(String difficulty, String question, String answer) {
+	public Question(String difficulty, String text, String answer) {
 		this.setDifficulty(difficulty);
-		this.setQuestion(question);
+		this.setText(text);
 		this.setAnswer(answer);
 	}
 
 	public String toString() {
-		return "Dificuldade: " + getDifficulty() + ", Questão: " + getQuestion() + ", Resposta: " + getAnswer();
+		return "Dificuldade: " + getDifficulty() + ", Questão: " + getText() + ", Resposta: " + getAnswer();
 	}
 
 	public String getDifficulty() {
@@ -21,7 +21,7 @@ public class Question {
 
 	public void setDifficulty(String difficulty) {
 		// Remove caracteres especiais
-		difficulty = difficulty.replaceAll("[^a-zA-Z0-9]", " ");
+		difficulty = normalizeString(difficulty);
 		// Normalização
 		if (difficulty.toLowerCase().contains("dificil")) {
 			difficulty = "hard";
@@ -33,12 +33,12 @@ public class Question {
 		this.difficulty = difficulty;
 	}
 
-	public String getQuestion() {
-		return question;
+	public String getText() {
+		return text;
 	}
 
-	public void setQuestion(String question) {
-		this.question = question;
+	public void setText(String question) {
+		this.text = question;
 	}
 
 	public String getAnswer() {
@@ -47,5 +47,19 @@ public class Question {
 
 	public void setAnswer(String answer) {
 		this.answer = answer;
+	}
+
+	public boolean isCorrect(String text) {
+		text = normalizeString(text);
+		// Se a pergunta esta correta
+		if (text.toLowerCase().contentEquals(text.toLowerCase())) {
+			return true;
+		}
+		// Se a pergutna esta errada
+		return false;
+	}
+
+	public String normalizeString(String text) {
+		return text.replaceAll("[^a-zA-Z0-9]", " ");
 	}
 }

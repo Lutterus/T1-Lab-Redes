@@ -2,12 +2,10 @@ package Server;
 
 import java.io.*;
 import java.net.*;
-
-import Client.User;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
-	private QuestionsList questions;
-	private static int quantidadeDePerguntasDeUmaSessao = 10;
+	private static int quantidadeDePerguntasDeUmaSessao = 1;
 
 	public static void main(String[] args) {
 		// Carrega questoes
@@ -39,7 +37,7 @@ public class Main {
 			int port = receivePacket.getPort();
 			// mensagem do cliente
 			String sentence = new String(receivePacket.getData());
-			System.out.println("sentence: " + sentence);
+			System.out.println("Mensagem recebida: " + sentence);
 
 			// Identifica o usuario e mensagem
 			String[] parts = sentence.split(";");
@@ -47,21 +45,43 @@ public class Main {
 			String userName = parts[0];
 			// Mensagem enviada pelo usuario
 			String message = parts[1];
+			// Usuario identificado
+			User currentUser = users.getUser(userName);
 			// Se o usuario ja existe, mas ja respondeu as N perguntas
-			if (users.getUser(userName) != null
-					&& users.getUser(userName).getAnswersSize() == quantidadeDePerguntasDeUmaSessao) {
+			if (currentUser != null && currentUser.getAnswersSize() >= quantidadeDePerguntasDeUmaSessao) {
+				// Registra a ultima questao
+				currentUser.addAnswer(message);
+				System.out.println("Encerrando conexao");
+				// Avisa que chegou ao fim
 				sendMessage(IPAddress, serverSocket, "STOP");
+				// Envia o resultado ao cliente
+				try {
+					TimeUnit.SECONDS.sleep(1);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				System.out.println("currentUser.getAnswers(): " + currentUser.getAnswers());
+				sendMessage(IPAddress, serverSocket, currentUser.getAnswers());
 				break;
 			}
 			// Se e um novo usuario
-			if (users.getUser(userName) == null) {
+			if (currentUser == null) {
 				users.addUser(userName);
+				currentUser = users.getUser(userName);
 				System.out.println("criou um novo usuario, nome: " + userName);
+			} else {
+				// Se nao for
+				// Adiciona resposta dada pelo usuario
+				currentUser.addAnswer(message);
 			}
+			// Cria uma nova questao
+			// Registra a questao atual
+			currentUser.setLastQuestion(questions.getQuestion());
 			// Apenas envia uma mensagem
-			String introduction = "Pergunta Numero " + users.getUser(userName).getAnswersSize() + 1 + ": ";
-			String Question = introduction + questions.getQuestion();
-			sendMessage(IPAddress, serverSocket, Question);
+			String introduction = "Pergunta Numero " + users.getUser(userName).getAnswersSize() + ": ";
+			String QuestionText = introduction + currentUser.getLastQuestionText();
+			System.out.println("Pergunta enviada: " + QuestionText);
+			sendMessage(IPAddress, serverSocket, QuestionText);
 		}
 	}
 
@@ -72,6 +92,7 @@ public class Main {
 
 	// Metodo para responder a um cliente
 	public static void sendMessage(InetAddress IPAddress, DatagramSocket clientSocket, String messageToBeSent) {
+		System.out.println("Mensagem sendo enviada: " + messageToBeSent);
 		byte[] sendData = new byte[1024];
 		sendData = messageToBeSent.getBytes();
 

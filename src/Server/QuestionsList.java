@@ -20,8 +20,9 @@ public class QuestionsList {
 		loadQuestions();
 	}
 
-	public String getQuestion() {
-		return "AAAA";
+	public Question getQuestion() {
+		int random = 0 + (int) (Math.random() * eazyQuestions.size());
+		return eazyQuestions.get(random);
 	}
 
 	// Le todos os arquivos da pasta para carregar as questoes
