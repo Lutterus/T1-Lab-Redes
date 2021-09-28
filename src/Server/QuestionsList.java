@@ -21,7 +21,7 @@ public class QuestionsList {
 	}
 
 	public String getQuestion() {
-		return "";
+		return "AAAA";
 	}
 
 	// Le todos os arquivos da pasta para carregar as questoes
