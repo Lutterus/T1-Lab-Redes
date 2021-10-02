@@ -1,14 +1,18 @@
 package Server;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class User {
 	private String name;
 	private ArrayList<Answer> answers;
-	private Question lastQuestion;
+	private InetAddress iPAddress;
+	private int port;
 
-	public User(String name) {
+	public User(String name, InetAddress iPAddress, int port) {
 		this.setName(name);
+		this.setiPAddress(iPAddress);
+		this.setPort(port);
 		answers = new ArrayList<Answer>();
 	}
 
@@ -24,37 +28,44 @@ public class User {
 		return answers.size() + 1;
 	}
 
-	public void addAnswer(String answer) {
-		answers.add(new Answer(answer, lastQuestion.isCorrect(answer)));
-	}
-
-	public Question getLastQuestion() {
-		return lastQuestion;
-	}
-
-	public String getLastQuestionText() {
-		return lastQuestion.getText();
-	}
-
-	public void setLastQuestion(Question lastQuestion) {
-		this.lastQuestion = lastQuestion;
+	public void addAnswer(String answer, boolean isCorrect) {
+		answers.add(new Answer(answer, isCorrect));
 	}
 
 	public String getAnswers() {
-		int index = 1;
-		String text = "";
-		for (Answer answer : answers) {
-			System.out.println("aaa");
-			if (answer.isCorrect()) {
-				text += "(V)";
+		System.out.println("concatenando");
+		System.out.println("tamanho:" + answers.size());
+		StringBuilder stringBuilder = new StringBuilder();
+		for (int index = 0; index < answers.size(); index++) {
+			System.out.println(answers.get(index).getText());
+			String isCorrect = "";
+			if (answers.get(index).isCorrect()) {
+				isCorrect = "(V)";
 			} else {
-				text += "(X)";
+				isCorrect = "(X)";
 			}
-			text += Integer.toString(index) + "- ";
-			text += " " + answer.getText() + "\n";
-			index++;
-
+			String text = isCorrect + Integer.toString(index + 1) + "-" + answers.get(index).getText() + "a;";
+			System.out.println("text:" + text);
+			stringBuilder.append(text);
 		}
-		return text;
+		String finalString = stringBuilder.toString();
+		System.out.println("final:" + finalString);
+		return finalString;
+	}
+
+	public InetAddress getiPAddress() {
+		return iPAddress;
+	}
+
+	public void setiPAddress(InetAddress iPAddress) {
+		this.iPAddress = iPAddress;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
 	}
 }

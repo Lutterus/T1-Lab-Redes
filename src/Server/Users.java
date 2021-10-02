@@ -1,5 +1,6 @@
 package Server;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class Users {
@@ -11,16 +12,20 @@ public class Users {
 
 	}
 
-	public void addUser(String name) {
-		users.add(new User(name));
+	public void addUser(String name, InetAddress iPAddress, int port) {
+		users.add(new User(name, iPAddress, port));
 	}
 
-	public User getUser(String name) {
+	public User getUser(int port) {
 		for (User user : users) {
-			if (user.getName().toLowerCase().contentEquals(name)) {
+			if (user.getPort() == port) {
 				return user;
 			}
 		}
 		return null;
+	}
+
+	public int getSize() {
+		return users.size();
 	}
 }
