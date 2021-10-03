@@ -28,4 +28,15 @@ public class Users {
 	public int getSize() {
 		return users.size();
 	}
+
+	public int haveAllPlayersResponded() {
+		int smallest = 999;
+		for (User user : users) {
+			int quantAnswers = user.getAnswersSize() - 1;
+			if (quantAnswers <= smallest) {
+				smallest = quantAnswers;
+			}
+		}
+		return smallest;
+	}
 }

@@ -49,6 +49,9 @@ public class ComunicationThread implements Runnable {
 
 	private void endGame() {
 		sendMessage("STOP", true);
+		while (!gameState.canGameFinish()) {
+			// Esperando os demais jogares terminarem
+		}
 		System.out.println("Enviando resultado");
 		byte[] sendData = new byte[1024];
 		sendData = currentUser.getAnswers().getBytes();

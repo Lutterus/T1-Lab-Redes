@@ -37,4 +37,8 @@ public class GameState {
 		// Jogo nao pode começar
 		return false;
 	}
+
+	public boolean canGameFinish() {
+		return users.haveAllPlayersResponded() == quantidadeDePerguntasDeUmaSessao;
+	}
 }

@@ -33,7 +33,7 @@ public class Main {
 		System.out.println("Olá! Nos informe seu nome");
 		gameFlow();
 
-		System.out.println("Parabens, voce chegou ao fim! Seu resultado:");
+		System.out.println("Parabens, voce chegou ao fim! Aguardando os demais players terminarem");
 		endGame();
 	}
 
@@ -43,13 +43,14 @@ public class Main {
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 		// recebe o pacote do cliente
 		try {
+			clientSocket.setSoTimeout(0);
 			clientSocket.receive(receivePacket);
 		} catch (IOException e) {
 			System.out.println("erro no recebimento do socket");
 			e.printStackTrace();
 		}
 		// Enquanto nao for uma pergunta, continua recebendo
-
+		System.out.println("Seu resultado:");
 		String sentence = new String(receivePacket.getData());
 		System.out.println(sentence);
 		String[] parts = sentence.split(";");
