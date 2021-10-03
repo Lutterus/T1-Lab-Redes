@@ -12,6 +12,7 @@ public class Main {
 	private static String myName = "";
 	private static String message = "";
 	private static String question = "";
+	private static int maxAttempts = 5;
 
 	public static void main(String[] args) {
 		startGame();
@@ -110,6 +111,7 @@ public class Main {
 				break;
 			} else {
 				// Se nao, tenta outra porta
+				System.out.println("Tentando com uma porta diferente");
 				serverPort--;
 			}
 		}
@@ -134,7 +136,19 @@ public class Main {
 			clientSocket.receive(receivePacket);
 			question = new String(receivePacket.getData());
 		} catch (IOException e) {
-			System.out.println("erro ao enviar mensagem");
+			question = "";
+			// Looping de tentar receber a mensagem
+			System.out.println("Servidor nao respondeu");
+//			while (question.contentEquals("")) {
+//				System.out.println("Servidor nao respondeu, enviando mensagem novamente");
+//				postMessage();
+//				try {
+//					clientSocket.receive(receivePacket);
+//					question = new String(receivePacket.getData());
+//				} catch (IOException e1) {
+//					// Ainda nao recebeu
+//				}
+//			}
 		}
 	}
 

@@ -10,6 +10,8 @@ public class ComunicationThread implements Runnable {
 	private User currentUser;
 	private QuestionsList questions;
 	private Users users;
+	private String lastSentMessage = "";
+	private boolean lastSentMessagePrint = false;
 
 	public ComunicationThread(DatagramSocket serverSocket, User currentUser, GameState gameState,
 			QuestionsList questions, Users users) {
@@ -79,8 +81,19 @@ public class ComunicationThread implements Runnable {
 		try {
 			serverSocket.receive(receivePacket);
 		} catch (IOException e) {
-			System.out.println("erro no recebimento do socket");
-			e.printStackTrace();
+			System.out.println("cliente nao respondeu");
+			// Looping de tentar receber a mensagem
+//			boolean stop = false;
+//			while (!stop) {
+//				System.out.println("Cliente não respondeu, enviando mensagem novamente");
+//				sendMessage(lastSentMessage, lastSentMessagePrint);
+//				try {
+//					serverSocket.receive(receivePacket);
+//					stop = true;
+//				} catch (IOException e1) {
+//					// Ainda nao recebeu
+//				}
+//			}
 		}
 		// mensagem do cliente
 		String sentence = new String(receivePacket.getData());
@@ -108,6 +121,9 @@ public class ComunicationThread implements Runnable {
 		} else {
 			messageToBeSent = "FALSE;" + messageToBeSent;
 		}
+		lastSentMessage = messageToBeSent;
+		lastSentMessagePrint = print;
+		System.out.println("Enviou:" + messageToBeSent);
 		byte[] sendData = new byte[1024];
 		sendData = messageToBeSent.getBytes();
 
