@@ -25,15 +25,12 @@ public class QuestionsList {
 		ArrayList<Question> currentQuestions;
 
 		if (answered < 5) {
-			System.out.println("PERGUNTA FACIL");
 			// As perguntas 1, 2, 3 e 4 sao faceis
 			currentQuestions = eazyQuestions;
 		} else if (answered < 9) {
-			System.out.println("PERGUNTA MEDIA");
 			// As perguntas 5, 6, 7 e 8 sao medias
 			currentQuestions = mediumQuestions;
 		} else {
-			System.out.println("PERGUNTA DIFICIL");
 			// As perguntas 9 e 10 sao dificeis
 			currentQuestions = hardQuestions;
 		}

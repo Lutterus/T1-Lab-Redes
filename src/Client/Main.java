@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 
 public class Main {
-	private static int timeoutSeconds = 1;
+	private static int timeoutSeconds = 2;
 	private static int serverPort = 9876;
 	private static int clientPort = 9877;
 	private static InetAddress IPAddress;
@@ -12,7 +12,8 @@ public class Main {
 	private static String myName = "";
 	private static String message = "";
 	private static String question = "";
-	private static int maxAttempts = 5;
+	private static String lastReceivedMessage = "";
+	private static int maxAttempsToRegister = 5;
 
 	public static void main(String[] args) {
 		startGame();
@@ -40,6 +41,7 @@ public class Main {
 		setIp();
 		// Registra jogador
 		registerPlayer();
+		System.out.println("registou");
 		// Espera o jogo estar pronto para começar
 		waitForGametoStart();
 		// Inicia jogo
@@ -103,11 +105,14 @@ public class Main {
 		while (true) {
 			// Envia nome
 			postMessage();
-			// Tenta receber a primeira pergunta
-			getMessage();
+			System.out.println("enviou");
+			// Tenta receber a confirmação de cadastro
+			getMessage(true);
+			System.out.println("recebeu");
 			// Se recebeu, o jogador foi registrado
 			if (!question.contentEquals("")) {
-				showMessage();
+				showMessage(true);
+				System.out.println("mostrou");
 				break;
 			} else {
 				// Se nao, tenta outra porta
@@ -119,17 +124,14 @@ public class Main {
 
 	// Espera o jog começar, esperando a chegada da mensagem especificaF
 	private static void waitForGametoStart() {
-		while (true) {
-			if (question.contains("O jogo irá começar, prepare-se")) {
-				showMessage();
-				break;
-			}
-			getMessage();
-		}
+		System.out.println("esperando");
+		postMessage();
+		getMessage(false);
+		showMessage(false);
 
 	}
 
-	private static void getMessage() {
+	private static void getMessage(boolean isRegistration) {
 		byte[] receiveData = new byte[1024];
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 		try {
@@ -139,16 +141,39 @@ public class Main {
 			question = "";
 			// Looping de tentar receber a mensagem
 			System.out.println("Servidor nao respondeu");
-//			while (question.contentEquals("")) {
-//				System.out.println("Servidor nao respondeu, enviando mensagem novamente");
-//				postMessage();
-//				try {
-//					clientSocket.receive(receivePacket);
-//					question = new String(receivePacket.getData());
-//				} catch (IOException e1) {
-//					// Ainda nao recebeu
-//				}
-//			}
+			if (isRegistration) {
+				handleLagRegistration(receivePacket);
+			} else {
+				handleLagGameFlow(receivePacket);
+			}
+		}
+	}
+
+	public static void handleLagRegistration(DatagramPacket receivePacket) {
+		int attemp = maxAttempsToRegister;
+		while (question.contentEquals("") && attemp > 0) {
+			System.out.println("Servidor nao respondeu, enviando mensagem novamente");
+			postMessage();
+			try {
+				clientSocket.receive(receivePacket);
+				question = new String(receivePacket.getData());
+			} catch (IOException e1) {
+				// Ainda nao recebeu
+			}
+			attemp--;
+		}
+	}
+
+	public static void handleLagGameFlow(DatagramPacket receivePacket) {
+		while (question.contentEquals("")) {
+			System.out.println("Servidor nao respondeu, enviando mensagem novamente");
+			postMessage();
+			try {
+				clientSocket.receive(receivePacket);
+				question = new String(receivePacket.getData());
+			} catch (IOException e1) {
+				// Ainda nao recebeu
+			}
 		}
 	}
 
@@ -169,14 +194,14 @@ public class Main {
 	// Fluxo de perguntas e respostas do jogo
 	private static void gameFlow() {
 		while (true) {
-			getMessage();
+			getMessage(false);
 			// Se for o aviso de fim de jogo, para
 			if (question.contains("STOP")) {
 				break;
 			}
 			// Se nao
 			// Mostra pergunta em tela
-			showMessage();
+			showMessage(false);
 			// Pega resposta do cliente
 			getUserInput();
 			// Envia para o servidor
@@ -185,7 +210,7 @@ public class Main {
 	}
 
 	// Apreseta a mensagem em tela, formatada
-	private static void showMessage() {
+	private static void showMessage(boolean isRegistration) {
 		// Importante!
 		// Para evitar timeout, foi feita a gambi de que
 		// Quando é necessario esperar, continuamente é enviado mensagens
@@ -196,21 +221,22 @@ public class Main {
 			String print = parts[0];
 			// Mensagem
 			String message = parts[1];
-			if (print.contains("TRUE")) {
+			if (print.contains("TRUE") && !lastReceivedMessage.contains(message)) {
 				System.out.println("Servidor: " + message);
+				lastReceivedMessage = message;
 				break;
 			}
-			getMessage();
+			getMessage(isRegistration);
 		}
 	}
 
 	// Procedimento de encerrar o game
 	private static void endGame() {
 		// Mensagem de fim aviso de espera
-		getMessage();
-		showMessage();
+		getMessage(false);
+		showMessage(false);
 		// Mensagem de resultado
-		getMessage();
-		showMessage();
+		getMessage(false);
+		showMessage(false);
 	}
 }

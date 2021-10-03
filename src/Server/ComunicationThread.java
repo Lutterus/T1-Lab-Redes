@@ -12,6 +12,8 @@ public class ComunicationThread implements Runnable {
 	private Users users;
 	private String lastSentMessage = "";
 	private boolean lastSentMessagePrint = false;
+	private String lastReceivedMessage = "";
+	private String lastReceivedAnswer = "";
 
 	public ComunicationThread(DatagramSocket serverSocket, User currentUser, GameState gameState,
 			QuestionsList questions, Users users) {
@@ -24,17 +26,8 @@ public class ComunicationThread implements Runnable {
 
 	@Override
 	public void run() {
-		// Avisa que vai começar
-		sendMessage("Aguardando outros jogadores antes de iniciar o jogo", true);
-		// Se nao pode começar, avisa
-		while (true) {
-			if (gameState.canGameStart()) {
-				break;
-			} else {
-				sendMessage("WAIT", false);
-			}
-		}
 		// Começando o jogo
+		startGame();
 		sendMessage("O jogo irá começar, prepare-se!", true);
 		// Fluxo de perguntas e respostas
 		boolean stop = false;
@@ -53,6 +46,23 @@ public class ComunicationThread implements Runnable {
 		System.out.println("Encerrando conexao");
 	}
 
+	// Logica de inicio de game, cnfirmando cadastro do usuario
+	private void startGame() {
+		// Avisa que vai começar
+		sendMessage("Aguardando outros jogadores antes de iniciar o jogo", true);
+		// Espera a confirmação de cadastro do usuario
+		receiveMessage();
+		// Se nao pode começar, avisa
+		while (true) {
+			if (gameState.canGameStart()) {
+				break;
+			} else {
+				sendMessage("WAIT", false);
+			}
+		}
+	}
+
+	// Logica de fim de jogo
 	private void endGame() {
 		// Avisa sobre o fim do jogo
 		sendMessage("STOP", false);
@@ -73,39 +83,24 @@ public class ComunicationThread implements Runnable {
 		System.out.println(users.getUser(currentUser.getPort()));
 	}
 
+	// Obtenção de uma mensagem qualquer
+
+	// Logica para obter uma resposta para uma pergunta
 	private boolean getAnswer(Question question) {
-		byte[] receiveData = new byte[1024];
-		// declara o pacote a ser recebido
-		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-		// recebe o pacote do cliente
-		try {
-			serverSocket.receive(receivePacket);
-		} catch (IOException e) {
-			System.out.println("cliente nao respondeu");
-			// Looping de tentar receber a mensagem
-//			boolean stop = false;
-//			while (!stop) {
-//				System.out.println("Cliente não respondeu, enviando mensagem novamente");
-//				sendMessage(lastSentMessage, lastSentMessagePrint);
-//				try {
-//					serverSocket.receive(receivePacket);
-//					stop = true;
-//				} catch (IOException e1) {
-//					// Ainda nao recebeu
-//				}
-//			}
-		}
-		// mensagem do cliente
-		String sentence = new String(receivePacket.getData());
-		String[] parts = sentence.split(";");
-		if (parts.length == 2 && currentUser.getName().contains(parts[0])) {
-			currentUser.addAnswer(parts[1], question.isCorrect(sentence));
+		receiveMessage();
+		String[] parts = lastReceivedMessage.split(";");
+		if (parts.length == 2 && currentUser.getName().contains(parts[0])
+				&& !lastReceivedAnswer.contentEquals(parts[1])) {
+			currentUser.addAnswer(parts[1], question.isCorrect(parts[1]));
+			lastReceivedAnswer = parts[1];
+			System.out.println("registrou: " + lastReceivedAnswer);
 			return true;
 		}
 		return false;
 
 	}
 
+	// Logica para enviar uma pergunta
 	private Question sendQuestion() {
 		Question question = questions.getQuestion(currentUser.getAnswersSize());
 		String questionText = question.getText();
@@ -114,11 +109,13 @@ public class ComunicationThread implements Runnable {
 		return question;
 	}
 
-	// Metodo para responder a um cliente
+	// Envio de mensagem
 	public void sendMessage(String messageToBeSent, boolean print) {
 		if (print) {
+			messageToBeSent = messageToBeSent.replace("TRUE;", "");
 			messageToBeSent = "TRUE;" + messageToBeSent;
 		} else {
+			messageToBeSent = messageToBeSent.replace("FALSE;", "");
 			messageToBeSent = "FALSE;" + messageToBeSent;
 		}
 		lastSentMessage = messageToBeSent;
@@ -136,6 +133,31 @@ public class ComunicationThread implements Runnable {
 			System.out.println("erro durante envio do pacote ao cliente");
 			e.printStackTrace();
 		}
+	}
+
+	// Recebimento de mensagem
+	public void receiveMessage() {
+		byte[] receiveData = new byte[1024];
+		// declara o pacote a ser recebido
+		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+		// recebe o pacote do cliente
+		try {
+			serverSocket.receive(receivePacket);
+		} catch (IOException e) {
+			// Looping de tentar receber a mensagem
+			boolean stop = false;
+			while (!stop) {
+				System.out.println("Cliente não respondeu, enviando mensagem novamente");
+				sendMessage(lastSentMessage, lastSentMessagePrint);
+				try {
+					serverSocket.receive(receivePacket);
+					stop = true;
+				} catch (IOException e1) {
+					// Ainda nao recebeu
+				}
+			}
+		}
+		lastReceivedMessage = new String(receivePacket.getData());
 	}
 
 }
