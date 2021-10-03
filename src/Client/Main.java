@@ -11,39 +11,33 @@ public class Main {
 	private static DatagramSocket clientSocket;
 
 	public static void main(String[] args) {
+		startGame();
+		System.out.println("Deseja jogar novamente? S/N");
+		String sentence = getUserInput();
+		while (!sentence.toLowerCase().contains("n")) {
+			startGame();
+			sentence = getUserInput();
+		}
+		// fecha o cliente
+		clientSocket.close();
+
+	}
+
+	private static void startGame() {
 		System.out.println("Iniciando...");
-		// tenta encontrar um socket para o cliente
-		boolean foundAvailablePort = false;
-		while (!foundAvailablePort) {
-			System.out.println("Tentando a porta: " + clientPort);
-			try {
-				clientSocket = new DatagramSocket(clientPort);
-				foundAvailablePort = true;
-				clientSocket.setSoTimeout(1000);
-			} catch (SocketException e) {
-				System.out.println("Erro! porta ja em uso");
-				clientPort++;
-			}
-		}
-		System.out.println("Porta livre");
+		// Configura socket para o cliente
+		setClientSocket();
 		// obtem endereco ip do servidor com o DNS
-		try {
-			IPAddress = InetAddress.getByName("localhost");
-			System.out.println("Conectado ao servidor com sucesso");
-		} catch (UnknownHostException e) {
-			System.out.println("");
-			System.out.println("erro durante obtencao do ip do servidor");
-			e.printStackTrace();
-		}
-		String receivedMessage = "";
+		setIp();
+
 		System.out.println("Olá! Nos informe seu nome");
-		while (!receivedMessage.contains("STOP")) {
-			// Envia conteudo do cliente ao servidor
-			sendMessage();
-			// Espera mensagem do servidor e apresenta em tela
-			receivedMessage = receiveMessage();
-		}
+		gameFlow();
+
 		System.out.println("Parabens, voce chegou ao fim! Seu resultado:");
+		endGame();
+	}
+
+	private static void endGame() {
 		byte[] receiveData = new byte[1024];
 		// declara o pacote a ser recebido
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -62,9 +56,44 @@ public class Main {
 		for (String string : parts) {
 			System.out.println(string);
 		}
+	}
 
-		// fecha o cliente
-		clientSocket.close();
+	private static void gameFlow() {
+		String receivedMessage = "";
+		while (!receivedMessage.contains("STOP")) {
+			// Envia conteudo do cliente ao servidor
+			sendMessage();
+			// Espera mensagem do servidor e apresenta em tela
+			receivedMessage = receiveMessage();
+		}
+	}
+
+	private static void setIp() {
+		try {
+			IPAddress = InetAddress.getByName("localhost");
+			System.out.println("Conectado ao servidor com sucesso");
+		} catch (UnknownHostException e) {
+			System.out.println("");
+			System.out.println("erro durante obtencao do ip do servidor");
+			e.printStackTrace();
+		}
+
+	}
+
+	private static void setClientSocket() {
+		boolean foundAvailablePort = false;
+		while (!foundAvailablePort) {
+			System.out.println("Tentando a porta: " + clientPort);
+			try {
+				clientSocket = new DatagramSocket(clientPort);
+				foundAvailablePort = true;
+				clientSocket.setSoTimeout(1000);
+			} catch (SocketException e) {
+				System.out.println("Erro! porta ja em uso");
+				clientPort++;
+			}
+		}
+		System.out.println("Porta livre encontrada");
 
 	}
 
@@ -117,17 +146,8 @@ public class Main {
 
 	// Metodo para que o cliente possa enviar uma mensagem ao servidor
 	public static void sendMessage() {
-		// cria o stream do teclado
-		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+		String sentence = getUserInput();
 		byte[] sendData = new byte[1024];
-		// le uma linha do teclado
-		String sentence = null;
-		try {
-			sentence = inFromUser.readLine();
-		} catch (IOException e) {
-			System.out.println("erro durante leitura do input do cliente");
-			e.printStackTrace();
-		}
 		sendData = sentence.getBytes();
 
 		// cria pacote com o dado, o endereco e porta do servidor
@@ -141,5 +161,21 @@ public class Main {
 			e.printStackTrace();
 		}
 		lastMessage = sentence;
+	}
+
+	// Leitura do teclado
+	public static String getUserInput() {
+		// cria o stream do teclado
+		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+
+		// le uma linha do teclado
+		String sentence = null;
+		try {
+			sentence = inFromUser.readLine();
+		} catch (IOException e) {
+			System.out.println("erro durante leitura do input do cliente");
+			e.printStackTrace();
+		}
+		return sentence;
 	}
 }
