@@ -5,7 +5,7 @@ import java.net.*;
 
 public class Main {
 	private static int quantidadeDePerguntasDeUmaSessao = 4;
-	private static int quantidadeDeJogadoresMinimos = 2;
+	private static int quantidadeDeJogadoresMinimos = 1;
 	private static int serverPort = 9876;
 
 	public static void main(String[] args) {
@@ -16,7 +16,6 @@ public class Main {
 		System.out.println("Aguardando conexão");
 
 		while (true) {
-			System.out.println("começou");
 			DatagramSocket serverSocket = null;
 			try {
 				serverSocket = new DatagramSocket(serverPort);
@@ -24,7 +23,6 @@ public class Main {
 				System.out.println("erro na criacao do server socket");
 				e1.printStackTrace();
 			}
-			System.out.println("vai receber");
 			byte[] receiveData = new byte[1024];
 			// declara o pacote a ser recebido
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
@@ -36,8 +34,7 @@ public class Main {
 				e.printStackTrace();
 			}
 			// mensagem do cliente
-			String sentence = new String(receivePacket.getData());
-			System.out.println("Mensagem recebida: " + sentence);
+			String userName = new String(receivePacket.getData());
 			// Ip do cliente
 			InetAddress IPAddress = receivePacket.getAddress();
 			// Porta
@@ -47,11 +44,11 @@ public class Main {
 			// Cria uma thread de comunicação especifica para aquele usuario
 			if (currentUser == null) {
 				// Cria o usuario
-				users.addUser(sentence, IPAddress, port);
+				users.addUser(userName, IPAddress, port);
 				Thread userThread = new Thread(
-						new ComunicationThread(serverSocket, users.getUser(port), gameState, questions));
+						new ComunicationThread(serverSocket, users.getUser(port), gameState, questions, users));
 				userThread.start();
-				System.out.println("criou um novo usuario, nome: " + sentence);
+				System.out.println("criou um novo usuario, nome: " + userName);
 			}
 			serverPort--;
 		}

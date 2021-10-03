@@ -2,6 +2,7 @@ package Server;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class User {
 	private String name;
@@ -25,16 +26,14 @@ public class User {
 	}
 
 	public int getAnswersSize() {
-		return answers.size() + 1;
+		return answers.size();
 	}
 
-	public void addAnswer(String answer, boolean isCorrect) {
-		answers.add(new Answer(answer, isCorrect));
+	public void addAnswer(String answer, boolean iscorrect) {
+		answers.add(new Answer(answer, iscorrect));
 	}
 
 	public String getAnswers() {
-		System.out.println("concatenando");
-		System.out.println("tamanho:" + answers.size());
 		StringBuilder stringBuilder = new StringBuilder();
 		for (int index = 0; index < answers.size(); index++) {
 			System.out.println(answers.get(index).getText());

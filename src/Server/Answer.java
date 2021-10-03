@@ -5,8 +5,6 @@ public class Answer {
 	private boolean isCorrect;
 
 	public Answer(String text, boolean isCorrect) {
-		System.out.println("adicionou uam nova resposta: " + text);
-		System.out.println("correta: " + isCorrect);
 		setText(text);
 		setCorrect(isCorrect);
 	}
@@ -25,5 +23,9 @@ public class Answer {
 
 	public void setCorrect(boolean isCorrect) {
 		this.isCorrect = isCorrect;
+	}
+
+	public String toString() {
+		return "Resposta: " + getText() + ", correto: " + isCorrect();
 	}
 }

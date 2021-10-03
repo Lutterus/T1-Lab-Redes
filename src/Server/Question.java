@@ -34,7 +34,7 @@ public class Question {
 	}
 
 	public String getText() {
-		return text;
+		return text.toLowerCase();
 	}
 
 	public void setText(String question) {
@@ -42,17 +42,16 @@ public class Question {
 	}
 
 	public String getAnswer() {
-		return answer;
+		return normalizeString(answer.toLowerCase());
 	}
 
 	public void setAnswer(String answer) {
 		this.answer = answer;
 	}
 
-	public boolean isCorrect(String text) {
-		text = normalizeString(text);
+	public boolean isCorrect(String userAnswer) {
 		// Se a pergunta esta correta
-		if (text.toLowerCase().contentEquals(text.toLowerCase())) {
+		if (normalizeString(userAnswer).contains(getAnswer())) {
 			return true;
 		}
 		// Se a pergutna esta errada

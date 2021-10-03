@@ -4,71 +4,84 @@ import java.io.*;
 import java.net.*;
 
 public class Main {
+	private static int timeoutSeconds = 1;
 	private static int serverPort = 9876;
-	private static int clientPort = serverPort + 1;
-	private static String lastMessage = "";
+	private static int clientPort = 9877;
 	private static InetAddress IPAddress;
 	private static DatagramSocket clientSocket;
+	private static String myName = "";
+	private static String message = "";
+	private static String question = "";
 
 	public static void main(String[] args) {
 		startGame();
-		System.out.println("Deseja jogar novamente? S/N");
-		String sentence = getUserInput();
-		while (!sentence.toLowerCase().contains("n")) {
+		while (true) {
+			message = "";
+			question = "";
+			System.out.println("Deseja jogar novamente? S/N");
+			getUserInput();
+			if (message.toLowerCase().contains("n")) {
+				break;
+			}
 			startGame();
-			sentence = getUserInput();
 		}
 		// fecha o cliente
 		clientSocket.close();
 
 	}
 
+	// Controlador do jogo
 	private static void startGame() {
 		System.out.println("Iniciando...");
 		// Configura socket para o cliente
 		setClientSocket();
 		// obtem endereco ip do servidor com o DNS
 		setIp();
-
-		System.out.println("Olá! Nos informe seu nome");
+		// Registra jogador
+		registerPlayer();
+		// Espera o jogo estar pronto para começar
+		waitForGametoStart();
+		// Inicia jogo
 		gameFlow();
-
-		System.out.println("Parabens, voce chegou ao fim! Aguardando os demais players terminarem");
+		System.out.println("");
 		endGame();
 	}
 
-	private static void endGame() {
-		byte[] receiveData = new byte[1024];
-		// declara o pacote a ser recebido
-		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-		// recebe o pacote do cliente
+	// Leitura do teclado
+	private static void getUserInput() {
+		// cria o stream do teclado
+		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
+
+		// le uma linha do teclado
+		String sentence = null;
 		try {
-			clientSocket.setSoTimeout(0);
-			clientSocket.receive(receivePacket);
+			sentence = inFromUser.readLine();
 		} catch (IOException e) {
-			System.out.println("erro no recebimento do socket");
+			System.out.println("erro durante leitura do input do cliente");
 			e.printStackTrace();
 		}
-		// Enquanto nao for uma pergunta, continua recebendo
-		System.out.println("Seu resultado:");
-		String sentence = new String(receivePacket.getData());
-		System.out.println(sentence);
-		String[] parts = sentence.split(";");
-		for (String string : parts) {
-			System.out.println(string);
-		}
+		message = sentence;
 	}
 
-	private static void gameFlow() {
-		String receivedMessage = "";
-		while (!receivedMessage.contains("STOP")) {
-			// Envia conteudo do cliente ao servidor
-			sendMessage();
-			// Espera mensagem do servidor e apresenta em tela
-			receivedMessage = receiveMessage();
+	// Configuração de socket
+	private static void setClientSocket() {
+		boolean foundAvailablePort = false;
+		while (!foundAvailablePort) {
+			System.out.println("Tentando a porta: " + clientPort);
+			try {
+				clientSocket = new DatagramSocket(clientPort);
+				foundAvailablePort = true;
+				clientSocket.setSoTimeout(timeoutSeconds * 1000);
+			} catch (SocketException e) {
+				System.out.println("Erro! porta ja em uso");
+				clientPort++;
+			}
 		}
+		System.out.println("Porta livre encontrada");
+
 	}
 
+	// Configuração de ip
 	private static void setIp() {
 		try {
 			IPAddress = InetAddress.getByName("localhost");
@@ -81,102 +94,109 @@ public class Main {
 
 	}
 
-	private static void setClientSocket() {
-		boolean foundAvailablePort = false;
-		while (!foundAvailablePort) {
-			System.out.println("Tentando a porta: " + clientPort);
-			try {
-				clientSocket = new DatagramSocket(clientPort);
-				foundAvailablePort = true;
-				clientSocket.setSoTimeout(1000);
-			} catch (SocketException e) {
-				System.out.println("Erro! porta ja em uso");
-				clientPort++;
+	// Registro do jogador
+	private static void registerPlayer() {
+		System.out.println("Olá! Nos informe seu nome");
+		getUserInput();
+		myName = message;
+		while (true) {
+			// Envia nome
+			postMessage();
+			// Tenta receber a primeira pergunta
+			getMessage();
+			// Se recebeu, o jogador foi registrado
+			if (!question.contentEquals("")) {
+				showMessage();
+				break;
+			} else {
+				// Se nao, tenta outra porta
+				serverPort--;
 			}
 		}
-		System.out.println("Porta livre encontrada");
+	}
+
+	// Espera o jog começar, esperando a chegada da mensagem especificaF
+	private static void waitForGametoStart() {
+		while (true) {
+			if (question.contains("O jogo irá começar, prepare-se")) {
+				showMessage();
+				break;
+			}
+			getMessage();
+		}
 
 	}
 
-	// Metodo para que o cliente possa receber uma mensagem do servidor
-	public static String receiveMessage() {
-		String isQuestion = "";
-		String message = "";
-		String sentence = "";
-		// Enquanto nao for uma pergunta, continua recebendo
-		while (!isQuestion.contains("TRUE")) {
-			byte[] receiveData = new byte[1024];
-			// declara o pacote a ser recebido
-			boolean conection = false;
-			while (!conection) {
-				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-				// recebe o pacote do cliente
-				try {
-					clientSocket.receive(receivePacket);
-					conection = true;
-					sentence = new String(receivePacket.getData());
-				} catch (IOException e) {
-					System.out.println("erro no recebimento do socket");
-					System.out.println("reestabelecendo conexao com o servidor");
-					byte[] sendData = new byte[1024];
-					sendData = lastMessage.getBytes();
-					serverPort--;
-					DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, serverPort);
-					// envia o pacote
-					try {
-						clientSocket.send(sendPacket);
-					} catch (IOException e2) {
-						System.out.println("erro durante envio do pacote ao servidor");
-						e2.printStackTrace();
-					}
-				}
-			}
-
-			String[] parts = sentence.split(";");
-			// Nome do usuario enviando a mensagem
-			isQuestion = parts[0];
-			// Mensagem enviada pelo usuario
-			message = parts[1];
-			// Enquanto nao for uma pergunta, continua recebendo
-			if (!message.contains("STOP") && !message.contains("WAIT")) {
-				System.out.println("Servidor: " + message);
-			}
+	private static void getMessage() {
+		byte[] receiveData = new byte[1024];
+		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+		try {
+			clientSocket.receive(receivePacket);
+			question = new String(receivePacket.getData());
+		} catch (IOException e) {
+			System.out.println("erro ao enviar mensagem");
 		}
-		return message;
 	}
 
-	// Metodo para que o cliente possa enviar uma mensagem ao servidor
-	public static void sendMessage() {
-		String sentence = getUserInput();
+	// Envio de mensagem
+	private static void postMessage() {
+		String sentence = myName + ";" + message;
 		byte[] sendData = new byte[1024];
 		sendData = sentence.getBytes();
-
-		// cria pacote com o dado, o endereco e porta do servidor
 		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, serverPort);
-
-		// envia o pacote
 		try {
 			clientSocket.send(sendPacket);
 		} catch (IOException e) {
 			System.out.println("erro durante envio do pacote ao servidor");
 			e.printStackTrace();
 		}
-		lastMessage = sentence;
 	}
 
-	// Leitura do teclado
-	public static String getUserInput() {
-		// cria o stream do teclado
-		BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-
-		// le uma linha do teclado
-		String sentence = null;
-		try {
-			sentence = inFromUser.readLine();
-		} catch (IOException e) {
-			System.out.println("erro durante leitura do input do cliente");
-			e.printStackTrace();
+	// Fluxo de perguntas e respostas do jogo
+	private static void gameFlow() {
+		while (true) {
+			getMessage();
+			// Se for o aviso de fim de jogo, para
+			if (question.contains("STOP")) {
+				break;
+			}
+			// Se nao
+			// Mostra pergunta em tela
+			showMessage();
+			// Pega resposta do cliente
+			getUserInput();
+			// Envia para o servidor
+			postMessage();
 		}
-		return sentence;
+	}
+
+	// Apreseta a mensagem em tela, formatada
+	private static void showMessage() {
+		// Importante!
+		// Para evitar timeout, foi feita a gambi de que
+		// Quando é necessario esperar, continuamente é enviado mensagens
+		// Para tanto, só mostra em tela quando chegar uma mensagem com a tag TRUE
+		while (true) {
+			String[] parts = question.split(";");
+			// Tipo da mensagem recebida
+			String print = parts[0];
+			// Mensagem
+			String message = parts[1];
+			if (print.contains("TRUE")) {
+				System.out.println("Servidor: " + message);
+				break;
+			}
+			getMessage();
+		}
+	}
+
+	// Procedimento de encerrar o game
+	private static void endGame() {
+		// Mensagem de fim aviso de espera
+		getMessage();
+		showMessage();
+		// Mensagem de resultado
+		getMessage();
+		showMessage();
 	}
 }

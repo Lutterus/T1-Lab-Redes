@@ -32,11 +32,16 @@ public class Users {
 	public int haveAllPlayersResponded() {
 		int smallest = 999;
 		for (User user : users) {
-			int quantAnswers = user.getAnswersSize() - 1;
+			int quantAnswers = user.getAnswersSize();
 			if (quantAnswers <= smallest) {
 				smallest = quantAnswers;
 			}
 		}
 		return smallest;
+	}
+
+	public void endGame(User currentUser) {
+		users.removeIf(t -> t.getPort() == currentUser.getPort());
+
 	}
 }
