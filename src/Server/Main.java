@@ -49,8 +49,8 @@ public class Main {
 						new ComunicationThread(serverSocket, users.getUser(port), gameState, questions, users));
 				userThread.start();
 				System.out.println("criou um novo usuario, nome: " + userName);
+				serverPort--;
 			}
-			serverPort--;
 		}
 	}
 
