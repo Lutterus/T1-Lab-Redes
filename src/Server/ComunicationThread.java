@@ -13,7 +13,6 @@ public class ComunicationThread implements Runnable {
 	private String lastSentMessage = "";
 	private boolean lastSentMessagePrint = false;
 	private String lastReceivedMessage = "";
-	private String lastReceivedAnswer = "";
 
 	public ComunicationThread(DatagramSocket serverSocket, User currentUser, GameState gameState,
 			QuestionsList questions, Users users) {
@@ -89,11 +88,8 @@ public class ComunicationThread implements Runnable {
 	private boolean getAnswer(Question question) {
 		receiveMessage();
 		String[] parts = lastReceivedMessage.split(";");
-		if (parts.length == 2 && currentUser.getName().contains(parts[0])
-				&& !lastReceivedAnswer.contentEquals(parts[1])) {
+		if (parts.length == 2 && currentUser.getName().contains(parts[0])) {
 			currentUser.addAnswer(parts[1], question.isCorrect(parts[1]));
-			lastReceivedAnswer = parts[1];
-			System.out.println("registrou: " + lastReceivedAnswer);
 			return true;
 		}
 		return false;
