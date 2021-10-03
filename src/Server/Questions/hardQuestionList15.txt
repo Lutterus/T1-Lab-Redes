@@ -1,0 +1,3 @@
+dificil
+Em qual camada encontra-se o ICMP?
+rede

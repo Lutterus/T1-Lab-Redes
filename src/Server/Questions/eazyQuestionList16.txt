@@ -1,0 +1,3 @@
+facil
+Qual o protocolo utilizado em uma intranet?
+TCP/IP

@@ -1,0 +1,3 @@
+medio
+Qual o modelo utilizado pelo protocolo TCP/IP?
+cliente/servidor
