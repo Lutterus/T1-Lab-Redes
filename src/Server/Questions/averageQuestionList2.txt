@@ -1,0 +1,3 @@
+medio
+Em qual camada de rede encontra-se o protocolo SMTP?
+aplicacao

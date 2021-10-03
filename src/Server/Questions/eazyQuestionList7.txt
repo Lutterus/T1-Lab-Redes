@@ -1,0 +1,3 @@
+facil
+O modelo OSI é composto por quantas camadas?
+7

@@ -1,0 +1,3 @@
+facil
+Qual o protocolo que especifica como sera a comunicacao entre um navegador e um servidor web?
+HTTP
