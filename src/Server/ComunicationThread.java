@@ -107,7 +107,7 @@ public class ComunicationThread implements Runnable {
 	}
 
 	private Question sendQuestion() {
-		Question question = questions.getQuestion();
+		Question question = questions.getQuestion(currentUser.getAnswersSize());
 		String questionText = question.getText();
 		questionText = currentUser.getAnswersSize() + 1 + "-" + questionText;
 		sendMessage(questionText, true);

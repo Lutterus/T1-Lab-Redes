@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.*;
 
 public class Main {
-	private static int quantidadeDePerguntasDeUmaSessao = 4;
+	private static int quantidadeDePerguntasDeUmaSessao = 10;
 	private static int quantidadeDeJogadoresMinimos = 1;
 	private static int serverPort = 9876;
 
