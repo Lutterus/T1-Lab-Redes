@@ -13,6 +13,7 @@ public class ComunicationThread implements Runnable {
 	private String lastSentMessage = "";
 	private boolean lastSentMessagePrint = false;
 	private String lastReceivedMessage = "";
+	private String lastAnswer = "";
 
 	public ComunicationThread(DatagramSocket serverSocket, User currentUser, GameState gameState,
 			QuestionsList questions, Users users) {
@@ -27,7 +28,6 @@ public class ComunicationThread implements Runnable {
 	public void run() {
 		// Começando o jogo
 		startGame();
-		sendMessage("O jogo irá começar, prepare-se!", true);
 		// Fluxo de perguntas e respostas
 		boolean stop = false;
 		while (!stop) {
@@ -59,13 +59,17 @@ public class ComunicationThread implements Runnable {
 				sendMessage("WAIT", false);
 			}
 		}
+		sendMessage("O jogo irá começar, prepare-se!", true);
+		receiveMessage();
 	}
 
 	// Logica de fim de jogo
 	private void endGame() {
 		// Avisa sobre o fim do jogo
-		sendMessage("STOP", false);
+		sendMessage("STOP", true);
+		receiveMessage();
 		sendMessage("Aguardando demais jogadores concluirem suas partidas", true);
+		receiveMessage();
 		// Enquanto os demais jogadores nao concluirem
 		while (true) {
 			if (gameState.canGameFinish()) {
@@ -77,6 +81,7 @@ public class ComunicationThread implements Runnable {
 		System.out.println("Enviando resultado");
 		// Envia os resultados
 		sendMessage(currentUser.getAnswers(), true);
+		receiveMessage();
 		// Remove o jogador
 		users.endGame(currentUser);
 		System.out.println(users.getUser(currentUser.getPort()));
@@ -89,7 +94,10 @@ public class ComunicationThread implements Runnable {
 		receiveMessage();
 		String[] parts = lastReceivedMessage.split(";");
 		if (parts.length == 2 && currentUser.getName().contains(parts[0])) {
-			currentUser.addAnswer(parts[1], question.isCorrect(parts[1]));
+			if (!lastAnswer.contains(parts[1])) {
+				lastAnswer = parts[1];
+				currentUser.addAnswer(parts[1], question.isCorrect(parts[1]));
+			}
 			return true;
 		}
 		return false;

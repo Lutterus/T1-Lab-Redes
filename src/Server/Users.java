@@ -37,6 +37,7 @@ public class Users {
 				smallest = quantAnswers;
 			}
 		}
+		System.out.println("smallest:" + smallest);
 		return smallest;
 	}
 

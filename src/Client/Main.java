@@ -13,7 +13,7 @@ public class Main {
 	private static String message = "";
 	private static String question = "";
 	private static String lastReceivedMessage = "";
-	private static int maxAttempsToRegister = 5;
+	private static int maxAttempsToRegister = 10;
 
 	public static void main(String[] args) {
 		startGame();
@@ -41,12 +41,10 @@ public class Main {
 		setIp();
 		// Registra jogador
 		registerPlayer();
-		System.out.println("registou");
 		// Espera o jogo estar pronto para começar
 		waitForGametoStart();
 		// Inicia jogo
 		gameFlow();
-		System.out.println("");
 		endGame();
 	}
 
@@ -105,13 +103,11 @@ public class Main {
 		while (true) {
 			// Envia nome
 			postMessage();
-			System.out.println("enviou");
 			// Tenta receber a confirmação de cadastro
-			getMessage(true);
-			System.out.println("recebeu");
+			showMessage(true);
 			// Se recebeu, o jogador foi registrado
 			if (!question.contentEquals("")) {
-				showMessage(true);
+
 				System.out.println("mostrou");
 				break;
 			} else {
@@ -124,9 +120,11 @@ public class Main {
 
 	// Espera o jog começar, esperando a chegada da mensagem especificaF
 	private static void waitForGametoStart() {
-		System.out.println("esperando");
+		// "aguardando"
 		postMessage();
-		getMessage(false);
+		showMessage(false);
+		// "prepare-se"
+		postMessage();
 		showMessage(false);
 
 	}
@@ -140,7 +138,6 @@ public class Main {
 		} catch (IOException e) {
 			question = "";
 			// Looping de tentar receber a mensagem
-			System.out.println("Servidor nao respondeu");
 			if (isRegistration) {
 				handleLagRegistration(receivePacket);
 			} else {
@@ -179,33 +176,36 @@ public class Main {
 
 	// Envio de mensagem
 	private static void postMessage() {
-		String sentence = myName + ";" + message;
-		byte[] sendData = new byte[1024];
-		sendData = sentence.getBytes();
-		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, serverPort);
-		try {
-			clientSocket.send(sendPacket);
-		} catch (IOException e) {
-			System.out.println("erro durante envio do pacote ao servidor");
-			e.printStackTrace();
+		if (!message.contentEquals("")) {
+			String sentence = myName + ";" + message;
+			byte[] sendData = new byte[1024];
+			sendData = sentence.getBytes();
+			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, serverPort);
+			try {
+				clientSocket.send(sendPacket);
+			} catch (IOException e) {
+				System.out.println("erro durante envio do pacote ao servidor");
+				e.printStackTrace();
+			}
 		}
+
 	}
 
 	// Fluxo de perguntas e respostas do jogo
 	private static void gameFlow() {
+		message = "";
 		while (true) {
-			getMessage(false);
-			// Se for o aviso de fim de jogo, para
-			if (question.contains("STOP")) {
-				break;
-			}
-			// Se nao
-			// Mostra pergunta em tela
-			showMessage(false);
 			// Pega resposta do cliente
 			getUserInput();
 			// Envia para o servidor
 			postMessage();
+			// Mostra pergunta em tela
+			showMessage(false);
+			// Se for o aviso de fim de jogo, para
+			if (question.contains("STOP")) {
+				break;
+			}
+
 		}
 	}
 
@@ -216,27 +216,33 @@ public class Main {
 		// Quando é necessario esperar, continuamente é enviado mensagens
 		// Para tanto, só mostra em tela quando chegar uma mensagem com a tag TRUE
 		while (true) {
+			getMessage(isRegistration);
 			String[] parts = question.split(";");
-			// Tipo da mensagem recebida
-			String print = parts[0];
-			// Mensagem
-			String message = parts[1];
-			if (print.contains("TRUE") && !lastReceivedMessage.contains(message)) {
-				System.out.println("Servidor: " + message);
-				lastReceivedMessage = message;
+			if (parts.length > 1) {
+				// Tipo da mensagem recebida
+				String print = parts[0];
+				// Mensagem
+				String message = parts[1];
+				if (print.contains("TRUE") && !lastReceivedMessage.contains(message)) {
+					System.out.println("Servidor: " + message);
+					lastReceivedMessage = message;
+					break;
+				}
+			} else {
 				break;
 			}
-			getMessage(isRegistration);
+
 		}
 	}
 
 	// Procedimento de encerrar o game
 	private static void endGame() {
 		// Mensagem de fim aviso de espera
-		getMessage(false);
+		postMessage();
 		showMessage(false);
 		// Mensagem de resultado
-		getMessage(false);
+		postMessage();
 		showMessage(false);
+		postMessage();
 	}
 }
