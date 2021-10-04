@@ -43,7 +43,7 @@ public class User {
 			} else {
 				isCorrect = "(X)";
 			}
-			String text = isCorrect + Integer.toString(index + 1) + "-" + answers.get(index).getText() + "a;";
+			String text = isCorrect + Integer.toString(index + 1) + "-" + answers.get(index).getText();
 			System.out.println("text:" + text);
 			stringBuilder.append(text);
 		}

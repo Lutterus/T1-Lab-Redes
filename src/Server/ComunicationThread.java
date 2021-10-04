@@ -84,7 +84,6 @@ public class ComunicationThread implements Runnable {
 		receiveMessage();
 		// Remove o jogador
 		users.endGame(currentUser);
-		System.out.println(users.getUser(currentUser.getPort()));
 	}
 
 	// Obtenção de uma mensagem qualquer
